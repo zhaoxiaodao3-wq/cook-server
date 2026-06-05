@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     WECHAT_APP_SECRET: str = ""
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
+    PORT: int = 8000
 
 
 settings = Settings()

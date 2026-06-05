@@ -25,3 +25,8 @@ upload_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
 app.include_router(v1_router, prefix="/api/v1")
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
