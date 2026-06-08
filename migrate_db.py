@@ -21,8 +21,12 @@ print("Upgrading database schema...")
 cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT")
 print("  [OK] users.bio")
 
-# 2. categories: add key column
+# 2. categories: ensure all columns
 cur.execute("ALTER TABLE categories ADD COLUMN IF NOT EXISTS key VARCHAR(32)")
+cur.execute("ALTER TABLE categories ADD COLUMN IF NOT EXISTS icon VARCHAR(64)")
+cur.execute("ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0")
+cur.execute("ALTER TABLE categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()")
+cur.execute("ALTER TABLE categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now()")
 cur.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='uq_categories_key') THEN ALTER TABLE categories ADD CONSTRAINT uq_categories_key UNIQUE (key); END IF; END $$")
 # Seed category keys
 cur.execute("""
@@ -35,15 +39,22 @@ cur.execute("""
 """)
 print("  [OK] categories.key (+ seeded default categories)")
 
-# 3. dishes: add cuisine, tags columns
+# 3. dishes: ensure all columns used by API
 cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS cuisine VARCHAR(32)")
 cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS tags JSONB")
-print("  [OK] dishes.cuisine, dishes.tags")
+cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS status VARCHAR(16) NOT NULL DEFAULT 'published'")
+cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS avg_rating NUMERIC(2,1) NOT NULL DEFAULT 0.0")
+cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()")
+cur.execute("ALTER TABLE dishes ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now()")
+print("  [OK] dishes columns (cuisine, tags, status, avg_rating, timestamps)")
 
-# 4. ingredients: change amount type from NUMERIC to VARCHAR
+# 4. ingredients: change amount type from NUMERIC to VARCHAR (ignore if already varchar)
 cur.execute("""
+DO $$ BEGIN
     ALTER TABLE ingredients
-    ALTER COLUMN amount TYPE VARCHAR(32) USING amount::varchar
+    ALTER COLUMN amount TYPE VARCHAR(32) USING amount::varchar;
+EXCEPTION WHEN others THEN NULL;
+END $$
 """)
 print("  [OK] ingredients.amount → VARCHAR")
 

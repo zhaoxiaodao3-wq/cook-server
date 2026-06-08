@@ -2,6 +2,9 @@
 
 一个面向小群体共享的菜品记录小程序后端，支持菜品 CRUD、食材与步骤管理、星级评分和做菜建议。
 
+> **开发与发布操作手册** → [docs/OPERATIONS.md](docs/OPERATIONS.md)（本地启动、Render 部署、Supabase 数据库、环境变量）  
+> **数据库同步说明** → [docs/DATABASE_SYNC.md](docs/DATABASE_SYNC.md)（本地 ↔ 线上表结构 / 数据同步）
+
 ## 技术栈
 
 | 技术 | 说明 |
