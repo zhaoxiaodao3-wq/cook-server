@@ -1,15 +1,19 @@
 """One-time script to create all tables in PostgreSQL. Run: python init_db.py"""
 import psycopg2
+from app.core.config import settings
 
-conn = psycopg2.connect(
-    host="localhost",
-    port=5432,
-    user="postgres",
-    password="postgres",
-    dbname="cookbook",
-)
+def _to_psycopg2_url(url: str) -> str:
+
+    for prefix in ("postgresql+psycopg://", "postgresql+asyncpg://"):
+
+        if url.startswith(prefix):
+
+            return "postgresql://" + url[len(prefix):]
+
+    return url
+
+conn = psycopg2.connect(_to_psycopg2_url(settings.DATABASE_URL))
 cur = conn.cursor()
-
 cur.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) PRIMARY KEY,
@@ -140,7 +144,27 @@ CREATE TABLE IF NOT EXISTS drafts (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )
 """)
+cur.execute('''
 
+    INSERT INTO categories (name, key, icon, sort_order) VALUES
+
+    ('早餐', 'breakfast', 'sunrise', 1),
+
+    ('午餐', 'lunch', 'sun', 2),
+
+    ('晚餐', 'dinner', 'moon', 3),
+
+    ('甜品', 'dessert', 'cake', 4)
+
+    ON CONFLICT (name) DO UPDATE SET
+
+        key = EXCLUDED.key,
+
+        icon = EXCLUDED.icon,
+
+        sort_order = EXCLUDED.sort_order
+
+''')
 conn.commit()
 cur.close()
 conn.close()
