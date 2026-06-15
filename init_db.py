@@ -1,13 +1,17 @@
 """One-time script to create all tables in PostgreSQL. Run: python init_db.py"""
 import psycopg2
 
-conn = psycopg2.connect(
-    host="localhost",
-    port=5432,
-    user="postgres",
-    password="postgres",
-    dbname="cookbook",
-)
+from app.core.config import settings
+
+
+def _to_psycopg2_url(url: str) -> str:
+    for prefix in ("postgresql+psycopg://", "postgresql+asyncpg://"):
+        if url.startswith(prefix):
+            return "postgresql://" + url[len(prefix) :]
+    return url
+
+
+conn = psycopg2.connect(_to_psycopg2_url(settings.DATABASE_URL))
 cur = conn.cursor()
 
 cur.execute("""
