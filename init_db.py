@@ -145,7 +145,19 @@ CREATE TABLE IF NOT EXISTS drafts (
 )
 """)
 
+cur.execute("""
+    INSERT INTO categories (name, key, icon, sort_order) VALUES
+    ('早餐', 'breakfast', 'sunrise', 1),
+    ('午餐', 'lunch', 'sun', 2),
+    ('晚餐', 'dinner', 'moon', 3),
+    ('甜品', 'dessert', 'cake', 4)
+    ON CONFLICT (name) DO UPDATE SET
+        key = EXCLUDED.key,
+        icon = EXCLUDED.icon,
+        sort_order = EXCLUDED.sort_order
+""")
+
 conn.commit()
 cur.close()
 conn.close()
-print("建表完成！9 张表已成功创建。")
+print("建表完成！9 张表已成功创建，默认分类已写入。")
