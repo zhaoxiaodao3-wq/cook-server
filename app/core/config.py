@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -18,5 +19,13 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     PORT: int = 8000
 
+    @field_validator("UPLOAD_DIR", mode="after")
+    @classmethod
+    def resolve_upload_dir(cls, value: str) -> str:
+        path = Path(value)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        path.mkdir(parents=True, exist_ok=True)
+        return str(path.resolve())
 
 settings = Settings()

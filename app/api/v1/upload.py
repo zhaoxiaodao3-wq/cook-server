@@ -1,3 +1,4 @@
+import logging
 import uuid
 from pathlib import Path
 
@@ -8,6 +9,8 @@ from app.core.config import settings
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.common import ApiResponse
+
+logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter(prefix="/upload", tags=["文件上传"])
 
@@ -38,5 +41,6 @@ async def upload_image(
     filename = f"{uuid.uuid4().hex}{ext}"
     filepath = upload_dir / filename
     filepath.write_bytes(content)
+    logger.info("Uploaded image saved to %s", filepath)
 
     return ApiResponse(data=UploadOut(url=f"/uploads/{filename}", filename=filename))

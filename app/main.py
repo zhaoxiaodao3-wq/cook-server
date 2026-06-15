@@ -28,6 +28,7 @@ app = FastAPI(
 
 upload_dir = Path(settings.UPLOAD_DIR)
 upload_dir.mkdir(parents=True, exist_ok=True)
+logger.info("Static uploads directory: %s", upload_dir.resolve())
 app.mount("/uploads", StaticFiles(directory=str(upload_dir)), name="uploads")
 
 app.include_router(v1_router, prefix="/api/v1")
@@ -36,6 +37,24 @@ app.include_router(v1_router, prefix="/api/v1")
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/health/uploads")
+async def health_uploads():
+    """检查 uploads 目录与文件是否可访问（部署排错用）"""
+    upload_dir = Path(settings.UPLOAD_DIR)
+    if not upload_dir.is_dir():
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "dir": str(upload_dir), "message": "uploads 目录不存在"},
+        )
+    files = [p.name for p in upload_dir.iterdir() if p.is_file()]
+    return {
+        "status": "ok",
+        "dir": str(upload_dir.resolve()),
+        "file_count": len(files),
+        "sample": files[:5],
+    }
 
 
 @app.get("/health/db")
